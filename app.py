@@ -174,4 +174,17 @@ async def init():
 async def main(message):
     chain = cl.user_session.get("chain")  # type: RetrievalQAWithSourcesChain
 
-    await chain.acall(message.content, callbacks=[cl.AsyncLangchainCallbackHandler()])
+    cb = cl.AsyncLangchainCallbackHandler(
+        stream_final_answer=True, answer_prefix_tokens=["FINAL", "ANSWER"]
+    )
+    cb.answer_reached = True
+
+    res = await chain.acall(message.content, callbacks=[cb])
+
+    if cb.has_streamed_final_answer:
+        await cb.final_stream.update()
+    else:
+        answer = res["answer"]
+        await cl.Message(
+            content=answer,
+        ).send()
