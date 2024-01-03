@@ -166,8 +166,6 @@ async def init():
     )
 
     cl.user_session.set("settings", settings)
-
-    print(settings)
     cl.user_session.set("chain", chain)
 
 
