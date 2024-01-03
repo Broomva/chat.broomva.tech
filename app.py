@@ -75,7 +75,7 @@ def auth_callback(
         "broomva",
         "b68cacbadaee450b8a8ce2dd44842f1de03ee9993ad97b5e99dea64ef93960ba",
     ):
-        return cl.AppUser(username="Broomva", role="ADMIN", provider="credentials")
+        return cl.AppUser(username="Broomva", role="OWNER", provider="credentials", tags = ["admin_user"])
     elif (username, password) == ("guest", "guest"):
         return cl.AppUser(username="Guest", role="USER", provider="credentials")
     else:
@@ -90,7 +90,6 @@ async def chat_profile(current_user: cl.AppUser):
             cl.ChatProfile(
                 name="Broomva Book Agent",
                 markdown_description="The underlying LLM model is **GPT-3.5**.",
-                # icon="https://picsum.photos/200",
             ),
         ]
 
@@ -98,12 +97,10 @@ async def chat_profile(current_user: cl.AppUser):
         cl.ChatProfile(
             name="Broomva Book Agent Lite",
             markdown_description="The underlying LLM model is **GPT-3.5**.",
-            # icon="https://picsum.photos/200",
         ),
         cl.ChatProfile(
             name="Broomva Book Agent Turbo",
             markdown_description="The underlying LLM model is **GPT-4 Turbo**.",
-            # icon="https://picsum.photos/250",
         ),
     ]
 
