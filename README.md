@@ -26,7 +26,7 @@ This chat application leverages the power of Langchain QA retriever to access an
 4. Set up environment variables for Langchain credentials.
 
 ## Usage
-- Start the app: `python app.py`
+- Start the app: `chainlit run app.py --watch`
 - Use the chat interface to ask questions like "What is MLFlow in Databricks?"
 - Receive concise, accurate answers sourced from Broomva's Tech Book.
 
