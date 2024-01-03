@@ -40,18 +40,18 @@ def oauth_callback(
     return default_app_user
 
 
-@cl.header_auth_callback
-def header_auth_callback(headers) -> Optional[cl.AppUser]:
-    # Verify the signature of a token in the header (ex: jwt token)
-    # or check that the value is matching a row from your database
-    # print(headers)
-    if (
-        headers.get("cookie")
-        == "ajs_user_id=5011e946-0d0d-5bd4-a293-65742db98d3d; ajs_anonymous_id=67d2569d-3f50-48f3-beaf-b756286276d9"
-    ):
-        return cl.AppUser(username="Broomva", role="ADMIN", provider="header")
-    else:
-        return None
+# @cl.header_auth_callback
+# def header_auth_callback(headers) -> Optional[cl.AppUser]:
+#     # Verify the signature of a token in the header (ex: jwt token)
+#     # or check that the value is matching a row from your database
+#     # print(headers)
+#     if (
+#         headers.get("cookie")
+#         == "ajs_user_id=5011e946-0d0d-5bd4-a293-65742db98d3d; ajs_anonymous_id=67d2569d-3f50-48f3-beaf-b756286276d9"
+#     ):
+#         return cl.AppUser(username="Broomva", role="ADMIN", provider="header")
+#     else:
+#         return None
 
 
 @cl.password_auth_callback
