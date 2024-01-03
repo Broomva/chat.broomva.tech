@@ -95,11 +95,11 @@ async def chat_profile(current_user: cl.AppUser):
 
     return [
         cl.ChatProfile(
-            name="Broomva Book Agent Lite",
+            name="Turbo Agent",
             markdown_description="The underlying LLM model is **GPT-3.5**.",
         ),
         cl.ChatProfile(
-            name="Broomva Book Agent Turbo",
+            name="GPT4 Agent",
             markdown_description="The underlying LLM model is **GPT-4 Turbo**.",
         ),
     ]
@@ -148,9 +148,9 @@ async def init():
 
     chat_profile = cl.user_session.get("chat_profile")
 
-    if chat_profile == "Broomva Book Agent Lite":
+    if chat_profile == "Turbo Agent":
         settings["model"] = "gpt-3.5-turbo"
-    elif chat_profile == "Broomva Book Agent Turbo":
+    elif chat_profile == "GPT4 Agent":
         settings["model"] = "gpt-4-1106-preview"
 
     chain = RetrievalQAWithSourcesChain.from_chain_type(
