@@ -1,25 +1,16 @@
-import os
 from typing import Dict, Optional
 
 import chainlit as cl
 from chainlit.input_widget import Select, Slider, Switch
-# from chainlit.playground.config import add_llm_provider
-# from chainlit.playground.providers.langchain import LangchainGenericProvider
-# from chainlit import user_session
 from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.chat_models import ChatOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
-# from langchain.llms import HuggingFaceHub
-# from langchain.prompts.chat import (AIMessagePromptTemplate,
-#                                     ChatPromptTemplate,
-#                                     HumanMessagePromptTemplate)
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
 
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
 embeddings = OpenAIEmbeddings()
 vector_store = FAISS.load_local("docs.faiss", embeddings)
-
 
 @cl.oauth_callback
 def oauth_callback(
@@ -38,20 +29,6 @@ def oauth_callback(
             default_app_user.role = "USER"
     # print(default_app_user)
     return default_app_user
-
-
-# @cl.header_auth_callback
-# def header_auth_callback(headers) -> Optional[cl.AppUser]:
-#     # Verify the signature of a token in the header (ex: jwt token)
-#     # or check that the value is matching a row from your database
-#     # print(headers)
-#     if (
-#         headers.get("cookie")
-#         == "ajs_user_id=5011e946-0d0d-5bd4-a293-65742db98d3d; ajs_anonymous_id=67d2569d-3f50-48f3-beaf-b756286276d9"
-#     ):
-#         return cl.AppUser(username="Broomva", role="ADMIN", provider="header")
-#     else:
-#         return None
 
 
 @cl.password_auth_callback
