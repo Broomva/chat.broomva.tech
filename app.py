@@ -18,23 +18,23 @@ embeddings = OpenAIEmbeddings()
 vector_store = FAISS.load_local("docs.faiss", embeddings)
 
 
-@cl.oauth_callback
-def oauth_callback(
-    provider_id: str,
-    token: str,
-    raw_user_data: Dict[str, str],
-    default_app_user: cl.AppUser,
-) -> Optional[cl.AppUser]:
-    # set AppUser tags as regular_user
-    match default_app_user.username:
-        case "Broomva":
-            default_app_user.tags = ["admin_user"]
-            default_app_user.role = "ADMIN"
-        case _:
-            default_app_user.tags = ["regular_user"]
-            default_app_user.role = "USER"
-    print(default_app_user)
-    return default_app_user
+# @cl.oauth_callback
+# def oauth_callback(
+#     provider_id: str,
+#     token: str,
+#     raw_user_data: Dict[str, str],
+#     default_app_user: cl.AppUser,
+# ) -> Optional[cl.AppUser]:
+#     # set AppUser tags as regular_user
+#     match default_app_user.username:
+#         case "Broomva":
+#             default_app_user.tags = ["admin_user"]
+#             default_app_user.role = "ADMIN"
+#         case _:
+#             default_app_user.tags = ["regular_user"]
+#             default_app_user.role = "USER"
+#     print(default_app_user)
+#     return default_app_user
 
 
 # @cl.set_chat_profiles
