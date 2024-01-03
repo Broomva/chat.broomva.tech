@@ -3,16 +3,16 @@ from typing import Dict, Optional
 
 import chainlit as cl
 from chainlit.input_widget import Select, Slider, Switch
-from chainlit.playground.config import add_llm_provider
-from chainlit.playground.providers.langchain import LangchainGenericProvider
+# from chainlit.playground.config import add_llm_provider
+# from chainlit.playground.providers.langchain import LangchainGenericProvider
 # from chainlit import user_session
 from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.chat_models import ChatOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.llms import HuggingFaceHub
-from langchain.prompts.chat import (AIMessagePromptTemplate,
-                                    ChatPromptTemplate,
-                                    HumanMessagePromptTemplate)
+# from langchain.llms import HuggingFaceHub
+# from langchain.prompts.chat import (AIMessagePromptTemplate,
+#                                     ChatPromptTemplate,
+#                                     HumanMessagePromptTemplate)
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
 
@@ -39,19 +39,25 @@ def oauth_callback(
     print(default_app_user)
     return default_app_user
 
+
 @cl.header_auth_callback
 def header_auth_callback(headers) -> Optional[cl.AppUser]:
     # Verify the signature of a token in the header (ex: jwt token)
     # or check that the value is matching a row from your database
     print(headers)
-    if headers.get("cookie") == "ajs_user_id=5011e946-0d0d-5bd4-a293-65742db98d3d; ajs_anonymous_id=67d2569d-3f50-48f3-beaf-b756286276d9":
+    if (
+        headers.get("cookie")
+        == "ajs_user_id=5011e946-0d0d-5bd4-a293-65742db98d3d; ajs_anonymous_id=67d2569d-3f50-48f3-beaf-b756286276d9"
+    ):
         return cl.AppUser(username="Broomva", role="ADMIN", provider="header")
     else:
         return None
 
 
 @cl.password_auth_callback
-def auth_callback(username: str = 'guest', password: str = 'guest') -> Optional[cl.AppUser]:
+def auth_callback(
+    username: str = "guest", password: str = "guest"
+) -> Optional[cl.AppUser]:
     # Fetch the user matching username from your database
     # and compare the hashed password with the value stored in the database
     import hashlib
@@ -64,13 +70,17 @@ def auth_callback(username: str = 'guest', password: str = 'guest') -> Optional[
 
     # Get the hexadecimal representation of the hash
     hashed_password = hash_object.hexdigest()
-    
-    if (username, hashed_password) == ("broomva", "b68cacbadaee450b8a8ce2dd44842f1de03ee9993ad97b5e99dea64ef93960ba"):
+
+    if (username, hashed_password) == (
+        "broomva",
+        "b68cacbadaee450b8a8ce2dd44842f1de03ee9993ad97b5e99dea64ef93960ba",
+    ):
         return cl.AppUser(username="Broomva", role="ADMIN", provider="credentials")
     elif (username, password) == ("guest", "guest"):
         return cl.AppUser(username="Guest", role="USER", provider="credentials")
     else:
         return None
+
 
 @cl.set_chat_profiles
 async def chat_profile(current_user: cl.AppUser):
@@ -96,21 +106,26 @@ async def chat_profile(current_user: cl.AppUser):
             # icon="https://picsum.photos/250",
         ),
     ]
-    
+
 
 @cl.on_settings_update
 async def setup_agent(settings):
     print("on_settings_update", settings)
 
+
 @cl.on_chat_start
 async def init():
-    
     settings = await cl.ChatSettings(
         [
             Select(
                 id="model",
                 label="OpenAI - Model",
-                values=["gpt-3.5-turbo", "gpt-3.5-turbo-1106", "gpt-4", "gpt-4-1106-preview"],
+                values=[
+                    "gpt-3.5-turbo",
+                    "gpt-3.5-turbo-1106",
+                    "gpt-4",
+                    "gpt-4-1106-preview",
+                ],
                 initial_index=0,
             ),
             Switch(id="streaming", label="OpenAI - Stream Tokens", initial=True),
@@ -132,23 +147,26 @@ async def init():
             ),
         ]
     ).send()
-    
+
     chat_profile = cl.user_session.get("chat_profile")
-    
+
     if chat_profile == "Broomva Book Agent Lite":
-        settings['model'] = "gpt-3.5-turbo"
+        settings["model"] = "gpt-3.5-turbo"
     elif chat_profile == "Broomva Book Agent Turbo":
-        settings['model'] = "gpt-4-1106-preview"
+        settings["model"] = "gpt-4-1106-preview"
 
     chain = RetrievalQAWithSourcesChain.from_chain_type(
-        ChatOpenAI(temperature=settings['temperature'], streaming=settings['streaming'], model=settings['model']),
+        ChatOpenAI(
+            temperature=settings["temperature"],
+            streaming=settings["streaming"],
+            model=settings["model"],
+        ),
         chain_type="stuff",
-        retriever=vector_store.as_retriever(search_kwargs={"k": int(settings['k'])}),
-        
+        retriever=vector_store.as_retriever(search_kwargs={"k": int(settings["k"])}),
     )
 
     cl.user_session.set("settings", settings)
-    
+
     print(settings)
     cl.user_session.set("chain", chain)
 
@@ -156,9 +174,9 @@ async def init():
 @cl.on_message
 async def main(message):
     chain = cl.user_session.get("chain")  # type: RetrievalQAWithSourcesChain
-    
+
     cb = cl.AsyncLangchainCallbackHandler(
-        stream_final_answer=True, #answer_prefix_tokens=["FINAL", "ANSWER"]
+        stream_final_answer=True,  # answer_prefix_tokens=["FINAL", "ANSWER"]
     )
     cb.answer_reached = True
 
@@ -172,22 +190,23 @@ async def main(message):
             content=answer,
         ).send()
 
-# Instantiate the LLM
-llm = HuggingFaceHub(
-    model_kwargs={"max_length": 500},
-    repo_id="Broomva/bart-large-translation-spa-guc",
-)
 
-# Add the LLM provider
-add_llm_provider(
-    LangchainGenericProvider(
-        # It is important that the id of the provider matches the _llm_type
-        id=llm._llm_type,
-        # The name is not important. It will be displayed in the UI.
-        name="Spa - Guc Translation",
-        # This should always be a Langchain llm instance (correctly configured)
-        llm=llm,
-        # If the LLM works with messages, set this to True
-        is_chat=True
-    )
-)
+# # Instantiate the LLM
+# llm = HuggingFaceHub(
+#     model_kwargs={"max_length": 500},
+#     repo_id="Broomva/bart-large-translation-spa-guc",
+# )
+
+# # Add the LLM provider
+# add_llm_provider(
+#     LangchainGenericProvider(
+#         # It is important that the id of the provider matches the _llm_type
+#         id=llm._llm_type,
+#         # The name is not important. It will be displayed in the UI.
+#         name="Spa - Guc Translation",
+#         # This should always be a Langchain llm instance (correctly configured)
+#         llm=llm,
+#         # If the LLM works with messages, set this to True
+#         is_chat=True
+#     )
+# )
