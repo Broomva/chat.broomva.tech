@@ -5,3 +5,5 @@ faiss-cpu
 chromadb
 tiktoken
 pymupdf
+duckduckgo-search
+wikipedia
