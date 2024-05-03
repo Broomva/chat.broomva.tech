@@ -8,11 +8,11 @@ from langchain.chat_models import ChatOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
 
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
 embeddings = OpenAIEmbeddings()
-vector_store = FAISS.load_local("../docs.faiss", embeddings)
+vector_store = FAISS.load_local("../docs.faiss", embeddings, allow_dangerous_deserialization=True)
 
 
 @cl.on_chat_start

@@ -4,39 +4,38 @@ import chainlit as cl
 from chainlit.input_widget import Select, Slider, Switch
 from langchain.chains import (ConversationalRetrievalChain,
                               RetrievalQAWithSourcesChain)
-from langchain.chat_models import ChatOpenAI
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.memory import ChatMessageHistory, ConversationBufferMemory
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
 embeddings = OpenAIEmbeddings()
-vector_store = FAISS.load_local("docs.faiss", embeddings)
+vector_store = FAISS.load_local("docs.faiss", embeddings, allow_dangerous_deserialization=True)
 
-@cl.oauth_callback
-def oauth_callback(
-    provider_id: str,
-    token: str,
-    raw_user_data: Dict[str, str],
-    default_app_user: cl.AppUser,
-) -> Optional[cl.AppUser]:
-    # set AppUser tags as regular_user
-    match default_app_user.username:
-        case "Broomva":
-            default_app_user.tags = ["admin_user"]
-            default_app_user.role = "ADMIN"
-        case _:
-            default_app_user.tags = ["regular_user"]
-            default_app_user.role = "USER"
-    # print(default_app_user)
-    return default_app_user
+# @cl.oauth_callback
+# def oauth_callback(
+#     provider_id: str,
+#     token: str,
+#     raw_user_data: Dict[str, str],
+#     default_app_user: cl.User,
+# ) -> Optional[cl.User]:
+#     # set AppUser tags as regular_user
+#     match default_app_user.username:
+#         case "Broomva":
+#             default_app_user.tags = ["admin_user"]
+#             default_app_user.role = "admin"
+#         case _:
+#             default_app_user.tags = ["regular_user"]
+#             default_app_user.role = "guest"
+#     # print(default_app_user)
+#     return default_app_user
 
 
 @cl.password_auth_callback
 def auth_callback(
     username: str = "guest", password: str = "guest"
-) -> Optional[cl.AppUser]:
+) -> Optional[cl.User]:
     # Fetch the user matching username from your database
     # and compare the hashed password with the value stored in the database
     import hashlib
@@ -54,34 +53,39 @@ def auth_callback(
         "broomva",
         "b68cacbadaee450b8a8ce2dd44842f1de03ee9993ad97b5e99dea64ef93960ba",
     ):
-        return cl.AppUser(username="Broomva", role="OWNER", provider="credentials", tags = ["admin_user"])
+        # return cl.User(username="Broomva", role="OWNER", provider="credentials", tags = ["admin_user"])
+        return cl.User(
+            identifier="broomva", metadata={"role": "admin", "provider": "credentials"}
+        )
     elif (username, password) == ("guest", "guest"):
-        return cl.AppUser(username="Guest", role="USER", provider="credentials")
+        return cl.User(
+            identifier="guest", metadata={"role": "user", "provider": "credentials"}
+        )
     else:
         return None
 
 
-@cl.set_chat_profiles
-async def chat_profile(current_user: cl.AppUser):
-    if "ADMIN" not in current_user.role:
-        # Default to 3.5 when not admin
-        return [
-            cl.ChatProfile(
-                name="Broomva Book Agent",
-                markdown_description="The underlying LLM model is **GPT-3.5**.",
-            ),
-        ]
+# @cl.set_chat_profiles
+# async def chat_profile(current_user: cl.User):
+#     if "admin" not in current_user.role:
+#         # Default to 3.5 when not admin
+#         return [
+#             cl.ChatProfile(
+#                 name="Broomva Book Agent",
+#                 markdown_description="The underlying LLM model is **GPT-3.5**.",
+#             ),
+#         ]
 
-    return [
-        cl.ChatProfile(
-            name="Turbo Agent",
-            markdown_description="The underlying LLM model is **GPT-3.5**.",
-        ),
-        cl.ChatProfile(
-            name="GPT4 Agent",
-            markdown_description="The underlying LLM model is **GPT-4 Turbo**.",
-        ),
-    ]
+#     return [
+#         cl.ChatProfile(
+#             name="Turbo Agent",
+#             markdown_description="The underlying LLM model is **GPT-3.5**.",
+#         ),
+#         cl.ChatProfile(
+#             name="GPT4 Agent",
+#             markdown_description="The underlying LLM model is **GPT-4 Turbo**.",
+#         ),
+#     ]
 
 
 @cl.on_settings_update
@@ -91,12 +95,12 @@ async def setup_agent(settings):
 
 def get_chain():
     settings = cl.user_session.get("settings")
-    chat_profile = cl.user_session.get("chat_profile")
+    # chat_profile = cl.user_session.get("chat_profile")
 
-    if chat_profile == "Turbo Agent":
-        settings["model"] = "gpt-3.5-turbo"
-    elif chat_profile == "GPT4 Agent":
-        settings["model"] = "gpt-4-1106-preview"
+    # if chat_profile == "Turbo Agent":
+    #     settings["model"] = "gpt-3.5-turbo"
+    # elif chat_profile == "GPT4 Agent":
+    #     settings["model"] = "gpt-4-1106-preview"
     
     message_history = ChatMessageHistory()
 
@@ -132,9 +136,9 @@ async def init():
                 label="OpenAI - Model",
                 values=[
                     "gpt-3.5-turbo",
-                    "gpt-3.5-turbo-1106",
-                    "gpt-4",
-                    "gpt-4-1106-preview",
+                    # "gpt-3.5-turbo-1106",
+                    # "gpt-4",
+                    # "gpt-4-1106-preview",
                 ],
                 initial_index=0,
             ),
